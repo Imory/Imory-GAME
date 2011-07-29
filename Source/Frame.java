@@ -1,27 +1,26 @@
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
-public class Frame extends JFrame implements KeyListener {
+public class Frame extends JFrame implements KeyListener, ActionListener  {
 
+	private static final long serialVersionUID = 1L;
+	
 	Draw draw;
 	Map map;
 	Player player;
 	Sound sound;
+	Timer timer;
+	PersonScript pscript;
 	boolean init = false;
+	boolean draw_window;
+	int window_type;
 	boolean superdraw = false;
 	public Frame(String title) throws IOException, MidiUnavailableException, InvalidMidiDataException
 	{
@@ -29,15 +28,18 @@ public class Frame extends JFrame implements KeyListener {
 		this.setSize(800,600);
 	    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	    this.setVisible(true);
-	    this.addKeyListener(this);		
+	    this.addKeyListener(this);	
+	    timer = new Timer(100, this);
 		map = new Map("Example\\");
-		draw = new Draw(map.getImageNames());
-		draw.setImages(map.getImageNames());
-		player = new Player(map.getPlayerPos_X(), map.getPlayerPos_Y(), 1, draw.image_count); //Hier is halt auch noch die veränderung dirn
+		draw = new Draw(map.getImageNames(), map.getPicturePath());
+		draw.setImages(map.getImageNames(), map.getPicturePath());
+		player = new Player(map.getPlayerPos_X(), map.getPlayerPos_Y(), 1, map.getPlayerImages()); //Hier is halt auch noch die veränderung dirn
 		sound = new Sound();
 		sound.playBackgroundMusic(map.getMusic());
 		System.out.println(map.getMusic());
 		init = true;
+		
+		timer.start();
 		
 		
 	}
@@ -85,22 +87,31 @@ public class Frame extends JFrame implements KeyListener {
 				map.destroy_map();
 				try {
 					
-					player = new Player(map.getNextPlayerPos_X(map.getLastNextMapIndex()), map.getNextPlayerPos_Y(map.getLastNextMapIndex()), 1, draw.image_count);
+					player = new Player(map.getNextPlayerPos_X(map.getLastNextMapIndex()), map.getNextPlayerPos_Y(map.getLastNextMapIndex()), 1, map.getPlayerImages());
 					sound.stopBackgroundMusic();
 					map = new Map(map.getLastNextMap());
-					draw.setImages(map.getImageNames());
+					draw.setImages(map.getImageNames(), map.getPicturePath());
 					sound.playBackgroundMusic(map.getMusic());
-					superdraw = true;
-					
+					superdraw = true;					
 					
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				draw.setImages(map.getImageNames());
 				break;
 			}			
 			case 2: //ACTION_PERSON
-				this.setTitle("Imory - Person");
+				//this.setTitle("Imory - Person");
+				try {
+					if(pscript != null)
+						pscript.destroy();
+					pscript = new PersonScript(map.getPersonScriptPath(), map.getLastPersonScript(), player, draw, this.getGraphics());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				this.timer = new Timer(pscript.getDelay(), this);
+				this.timer.start();
+				pscript.doCommand();
 				break;
 			case 0: //ACTION_NO_ACTION
 				this.setTitle("Imory");
@@ -120,5 +131,16 @@ public class Frame extends JFrame implements KeyListener {
 	public void keyTyped(KeyEvent arg0) {
 		// TODO Auto-generated method stub
 
+	}
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if(arg0.getSource() == this.timer)
+		{
+			if(pscript != null && pscript.isInit() == true)
+			{
+				pscript.doCommand();
+			}
+			repaint();
+		}
 	}
 }
