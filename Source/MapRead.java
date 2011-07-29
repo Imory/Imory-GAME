@@ -5,6 +5,8 @@ import java.util.HashMap;
 public class MapRead {
 	public static String MapDir = "./maps/standard/";
 	public static HashMap<String, String> genCFG;
+	public static HashMap<String, String> personCFG;
+	public static boolean person_init = false;
 	
 	public static void init() throws IOException{
 		ConfigFileReader genCFGReader = new ConfigFileReader(MapRead.MapDir + "general.cfg");
@@ -29,7 +31,10 @@ public class MapRead {
 		
 		return map;
 	}
-	
+	public static String getTerrainDir()
+	{
+		return genCFG.get("TERRAIN_DIR");
+	}
 	public static int[][] getLayer0() throws IOException{
 		
 		ConfigFileReader cfg = new ConfigFileReader(MapRead.MapDir + genCFG.get("MAP_LAYER_CFG"));
@@ -136,5 +141,44 @@ public class MapRead {
 			retMaps[i] = maps[i].split(",");
 		}		
 		return retMaps;
+	}
+	public static int[] getPlayerImages()
+	{
+		String str = genCFG.get("PLAYER_IMAGES");
+		String tmp[] = str.split("\\|");
+		int i[] = new int[4];
+		if(tmp.length < 4)
+			return null;
+		i[0] = Integer.parseInt(tmp[0]);
+		i[1] = Integer.parseInt(tmp[1]);
+		i[2] = Integer.parseInt(tmp[2]);
+		i[3] = Integer.parseInt(tmp[3]);
+		return i;		
+	}
+	public static String getPersonDir()
+	{
+		return genCFG.get("PERSON_DIR");
+	}
+	public static String initPersons() throws IOException //Returns PATH/DIR of the person scripts
+	{
+		ConfigFileReader cfg = new ConfigFileReader(MapDir + genCFG.get("PERSON_DIR") + "general.cfg");
+		personCFG = cfg.get();
+		if(personCFG != null)
+			person_init = true;
+		return personCFG.get("PERSON_SCRIPT_PATH");
+	}
+	public static int getPersonCount()
+	{
+		return Integer.parseInt(personCFG.get("PERSON_COUNT"));
+	}
+	public static String[] getPersonInfo(int index)
+	{
+		if(index > getPersonCount())
+			return null;
+		String str[] = new String[3];
+		str[0] = personCFG.get(index + "_PERSON_X");
+		str[1] = personCFG.get(index + "_PERSON_Y");
+		str[2] = personCFG.get(index + "_PERSON_SCRIPT");
+		return str;
 	}
 }

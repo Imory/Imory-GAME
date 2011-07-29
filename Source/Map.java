@@ -15,6 +15,8 @@ import javax.sound.midi.Sequencer;
 
 public class Map {
 
+	private String MapDir;
+	private String picture_dir;
 	private int size_x, size_y;
 	private int next_map_pos_x[], next_map_pos_y[];
 	private int next_map_pos_count;
@@ -30,9 +32,11 @@ public class Map {
 	
 	private String next_maps[];
 	private String person_scripts[];
+	private String person_script_path;
+	private String person_path;
 	
 	private String image_names[];
-	private String player_images[];
+	private int player_images[];
 	
 	private String music;
 	
@@ -47,6 +51,7 @@ public class Map {
 	
 	public Map(String dir) throws IOException
 	{
+		this.MapDir = dir;
 		MapRead.init(dir);
 		this.map = MapRead.getLayer0();
 		this.objects = MapRead.getLayer1();
@@ -54,6 +59,7 @@ public class Map {
 		this.image_names = MapRead.getFields();
 		this.PlayerPos = MapRead.getPlayerStartPos();
 		this.music = MapRead.getBackgroundMusic();
+		this.picture_dir = MapRead.getTerrainDir();
 		String tmp[][] = MapRead.getNextMaps();
 		this.next_map_pos_count = tmp[0].length;
 		this.next_maps = new String[this.next_map_pos_count];
@@ -74,11 +80,22 @@ public class Map {
 			this.size_y = this.map[0].length;
 		System.out.println("Mapsize X: " + map.length);
 		System.out.println("Mapsize Y: " + map[0].length);
-		this.persons_pos_count = 1;
-		this.persons_pos_x = new int[1];
-		this.persons_pos_y = new int[1];
-		this.persons_pos_x[0] = 14;
-		this.persons_pos_y[0] = 11;
+		this.player_images = MapRead.getPlayerImages();
+		
+		this.person_path = MapRead.getPersonDir();
+		this.person_script_path = MapRead.initPersons();
+		this.persons_pos_count = MapRead.getPersonCount();
+		this.persons_pos_x = new int[this.persons_pos_count];
+		this.persons_pos_y = new int[this.persons_pos_count];
+		this.person_scripts = new String[this.persons_pos_count];
+		String tmp1[];
+		for(int l = 0; l < this.persons_pos_count; l++)
+		{
+			tmp1 = MapRead.getPersonInfo(l);
+			this.persons_pos_x[l] = Integer.parseInt(tmp1[0]);
+			this.persons_pos_y[l] = Integer.parseInt(tmp1[1]);
+			this.person_scripts[l] = dir + this.person_path + this.person_script_path + tmp1[2];
+		}
 	}
 	public int getSizeX()
 	{
@@ -104,7 +121,7 @@ public class Map {
 	{
 		return this.image_names;
 	}
-	public String[] getPlayerImages()
+	public int[] getPlayerImages()
 	{
 		return this.player_images;
 	}
@@ -155,6 +172,15 @@ public class Map {
 	public String getMusic()
 	{
 		return this.music;
+	}
+	public String getPersonScriptPath()
+	{
+		return this.MapDir + this.person_path + this.person_script_path;
+	}
+	
+	public String getPicturePath()
+	{
+		return this.MapDir + this.picture_dir;
 	}
 	public boolean checkCollision(int x, int y) //Nur Objekte können Kollisionen erzeugen
 	{
