@@ -13,6 +13,15 @@ public class Player {
 	private boolean script;
 	private boolean movable;
 	
+	private int health_points;
+	private int experience_points;
+	private int armor;
+	private int attack;
+	private int speed;
+	
+	private Inventory inv;
+	
+	
 	public Player(int x, int y, int player_direction, int[] images)
 	{
 		this.x = x;

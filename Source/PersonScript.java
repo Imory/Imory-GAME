@@ -54,13 +54,10 @@ public class PersonScript {
 		{
 			String tmp[] = commands[step][1].split("\\|");
 			this.player.setPos(Integer.parseInt(tmp[0]), Integer.parseInt(tmp[1]));
+			this.player.setNPos(this.player.getX(), this.player.getY());
 			break;
 		}
 		case 1:
-			break;
-		case 2:
-			break;
-		case 10:
 		{
 			if(this.init_sp_window == false)
 			{
@@ -74,6 +71,8 @@ public class PersonScript {
 			}
 			break;
 		}
+		case 2:
+			break;
 		}
 		step++;
 		return;
