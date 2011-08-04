@@ -61,20 +61,24 @@ public class Map {
 		this.music = MapRead.getBackgroundMusic();
 		this.picture_dir = MapRead.getTerrainDir();
 		String tmp[][] = MapRead.getNextMaps();
-		this.next_map_pos_count = tmp[0].length;
+		this.next_map_pos_count = tmp.length;
 		this.next_maps = new String[this.next_map_pos_count];
 		this.next_map_pos_x = new int[this.next_map_pos_count];
 		this.next_map_pos_y = new int[this.next_map_pos_count];
 		this.next_map_set_pos_x = new int[this.next_map_pos_count];
 		this.next_map_set_pos_y = new int[this.next_map_pos_count];
+		
+		System.out.println("NextMaps: " + this.next_map_pos_count);
 		for(int l = 0; l < this.next_map_pos_count; l++)
 		{
-			this.next_maps[l] = tmp[4][l];
-			this.next_map_pos_x[l] = Integer.parseInt(tmp[0][l]);
-			this.next_map_pos_y[l] = Integer.parseInt(tmp[1][l]);
-			this.next_map_set_pos_x[l] = Integer.parseInt(tmp[2][l]);
-			this.next_map_set_pos_y[l] = Integer.parseInt(tmp[3][l]);
+			this.next_maps[l] = tmp[l][4];
+			this.next_map_pos_x[l] = Integer.parseInt(tmp[l][0]);
+			this.next_map_pos_y[l] = Integer.parseInt(tmp[l][1]);
+			this.next_map_set_pos_x[l] = Integer.parseInt(tmp[l][2]);
+			this.next_map_set_pos_y[l] = Integer.parseInt(tmp[l][3]);
+			System.out.println("Next Map at Pos: " + this.next_map_pos_x[l] + " " + this.next_map_pos_y[l]);
 		}
+		
 		this.size_x = this.map.length;
 		if(this.size_x != 0)
 			this.size_y = this.map[0].length;
@@ -181,6 +185,18 @@ public class Map {
 	public String getPicturePath()
 	{
 		return this.MapDir + this.picture_dir;
+	}
+	public void setMapPosTo(int x, int y, int value)
+	{
+		this.map[x][y] = value;
+	}
+	public void setObjectsPosTo(int x, int y, int value)
+	{
+		this.objects[x][y] = value;
+	}
+	public void setObjectsSecPosTo(int x, int y, int value)
+	{
+		this.objects_sec[x][y] = value;
 	}
 	public boolean checkCollision(int x, int y) //Nur Objekte können Kollisionen erzeugen
 	{

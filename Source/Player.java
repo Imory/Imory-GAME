@@ -139,9 +139,13 @@ public class Player {
 	}
 	public void move(KeyEvent e)
 	{
+		int key = e.getKeyCode();
+		if(key == KeyEvent.VK_G) //Has to be first checking action in PersonScript
+		{
+			this.action = true;
+		}
 		if(movable == false)
 			return;
-		int key = e.getKeyCode();
 		if(key == KeyEvent.VK_DOWN)
 		{
 			this.ny = this.y + 1;
@@ -161,10 +165,6 @@ public class Player {
 		{
 			this.ny = this.y - 1;
 			this.player_direction = 1;
-		}
-		else if(key == KeyEvent.VK_G)
-		{
-			this.action = true;
 		}
 		this.player_image = getImageByDirection();
 		//System.out.println("Player Pos: " + this.x + " " + this.y);

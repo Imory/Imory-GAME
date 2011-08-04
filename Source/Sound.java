@@ -191,6 +191,7 @@ public class Sound {
 				return;
 			int i = Integer.parseInt(play);
 			this.bgm_midi_sound[i].start();
+			this.bgm_midi_sound[i].setLoopCount(100);
 			this.bgm_playing_index = i;
 			this.bgm_playing_midi = true;
 		}
@@ -198,11 +199,12 @@ public class Sound {
 		{
 			int i = Integer.parseInt(play);
 			this.bgm_wave_sound[i].play();
+			this.bgm_wave_sound[i].loop();
 			this.bgm_playing_index = i;
 			this.bgm_playing_midi = false;
 		}
 	}
-	public void stopBackgroundMusic()
+	public void stopBackgroundMusic() //this pauses the music to reset call the reset method
 	{
 		if(this.bgm_playing_midi == true)
 		{
@@ -213,4 +215,12 @@ public class Sound {
 			this.bgm_wave_sound[this.bgm_playing_index].stop();
 		}
 	}
+	public void resetBackgroundMusic()
+	{
+		if(this.bgm_playing_midi == true)
+		{
+			this.bgm_midi_sound[this.bgm_playing_index].setMicrosecondPosition(0);
+		}
+	}
 }
+

@@ -12,13 +12,15 @@ public class PersonScript {
 	private int step;
 	private Player player;
 	private Draw draw;
+	private Map map;
 	private Graphics g;
 	private boolean init;
+	private boolean wait_action;
 	
 	private int speaking_window;
 	private boolean init_sp_window;
 	
-	public PersonScript(String dir, String file, Player player, Draw draw, Graphics g) throws IOException
+	public PersonScript(String dir, String file, Player player, Draw draw, Map map, Graphics g) throws IOException
 	{
 		
 		ConfigFileReader cfg = new ConfigFileReader("script_language.cfg");
@@ -33,13 +35,20 @@ public class PersonScript {
 		step = 0;
 		this.draw = draw;
 		this.player = player;
+		this.map = map;
 		this.g = g;
 		this.init = true;
 		this.init_sp_window = false;
+		this.wait_action = false;
 		this.player.setScriptedScene();
 	}
 	public void doCommand()
 	{
+		if(this.wait_action == true)
+		{
+			//System.out.println("Waiting for action");
+			return;
+		}
 		if(step < 0 || step >= commands.length)
 		{
 			if(this.init == true)
@@ -62,19 +71,25 @@ public class PersonScript {
 			if(this.init_sp_window == false)
 			{
 				this.init_sp_window = true;
-				this.speaking_window = draw.CreateNewWindow(1, 0, 0, commands[step][1], true); 	//creates a new speak window, x and y are unimportant the window has always the same position,
+				this.speaking_window = draw.CreateNewWindow(1, 0, 0, commands[step][1]+"\nPress 'G'", true); 	//creates a new speak window, x and y are unimportant the window has always the same position,
 																								//window_text is our speak text set window visible,
 			}
 			else
 			{
-				draw.SetWindowText(this.speaking_window, commands[step][1]);
+				draw.SetWindowText(this.speaking_window, commands[step][1]+"\nPress 'G'");
 			}
+			this.setWaitAction(true);
 			break;
 		}
 		case 2:
-			break;
+		{
+			String tmp[] = commands[step][1].split("\\|");
+			this.map.setObjectsPosTo(Integer.parseInt(tmp[0]), Integer.parseInt(tmp[1]), Integer.parseInt(tmp[2]));
+			break;	
+		}
 		}
 		step++;
+		//System.out.println("Next Person Script Step: " + step);
 		return;
 	}
 	public void destroy()
@@ -92,5 +107,13 @@ public class PersonScript {
 	public int getDelay()
 	{
 		return this.delay;
+	}
+	public void setWaitAction(boolean wait_action)
+	{
+		this.wait_action = wait_action;
+	}
+	public boolean getWaitAction()
+	{
+		return this.wait_action;
 	}
 }

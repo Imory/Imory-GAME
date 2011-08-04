@@ -4,18 +4,23 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-public class Draw extends JFrame {
+public class Draw {
 
 	private boolean init = false;
+	private Image buffer;
+	private Graphics buffer_g;
 	private Image images[];				//the actual images in an array
 	private Image window_images[];		//array of the window images
 	private String path;				//path of the images
 	private String image_names[];		//names of the images in a array
-	private int image_count;			//count of the i
+	private int image_count;			//count of the images
+	private Sprite sprites[];			//array of sprites
+	private int sprite_count;			//count of the sprites
 	private int map_copy[][];			//copy of the 1. layer
 	private int objects_copy[][];		//copy of the 2. layer
 	private int objects_sec_copy[][];	//copy of the 3. layer
@@ -33,21 +38,45 @@ public class Draw extends JFrame {
 	private int[] window_x, window_y;	//x and y coordinates of the window
 	private String window_text[];
 	
-	public Draw(String image_names[], String dir)
+	public Draw(String image_names[], String dir, JFrame jframe) throws IOException
 	{
 		this.image_count = image_names.length;
 		this.images = new Image[this.image_count];
 		this.image_names = image_names;
 		this.jframe = jframe;
 		ImageIcon img_tmp;
+		
+		//check Sprites count
+		this.sprite_count = 0;
 		for(int l = 0; l < this.image_count; l++)
 		{
-			img_tmp = new ImageIcon(this.image_names[l]);
-			this.images[l] = img_tmp.getImage();
+			if(this.image_names[l].indexOf(".sprite") != -1)
+			{
+				this.sprite_count++;
+			}
+		}
+		this.sprites = new Sprite[this.sprite_count];
+		int z = 0;
+		for(int l = 0; l < this.image_count; l++)
+		{
+			//check Sprite
+			if(this.image_names[l].indexOf(".sprite") != -1)
+			{
+				sprites[z] = new Sprite(image_names[l], l);
+				this.images[l] = sprites[z].getImage();
+				z++;
+			}
+			else
+			{
+				img_tmp = new ImageIcon(this.image_names[l]);
+				this.images[l] = img_tmp.getImage();
+			}
 		}
 		System.out.println("Loaded Images: " + this.image_count);
 		this.map_copy = new int[1][1];
 		this.map_copy[0][0] = 0;
+		this.buffer = jframe.createImage(800, 600);
+		this.buffer_g = this.buffer.getGraphics();
 		this.init = true;
 		this.window_images = new Image[3];
 		this.path = dir;
@@ -66,19 +95,43 @@ public class Draw extends JFrame {
 		this.font = new Font("Lucida Calligraphy", Font.PLAIN, 12);
 		
 	}
-	public void setImages(String image_names[], String dir)
+	public void setImages(String image_names[], String dir) throws IOException
 	{
 		this.image_count = image_names.length;
 		images = new Image[image_count];
 		this.image_names = image_names;
-		this.jframe = jframe;
 		ImageIcon img_tmp;
-		for(int l = 0; l < image_count; l++)
+		//check Sprites count
+		this.sprite_count = 0;
+		for(int l = 0; l < this.image_count; l++)
 		{
-			img_tmp = new ImageIcon(this.image_names[l]);
-			images[l] = img_tmp.getImage();
-			System.out.println(this.image_names[l]);
+			if(this.image_names[l].indexOf(".sprite") != -1)
+			{
+				this.sprite_count++;
+			}
 		}
+		this.sprites = new Sprite[this.sprite_count];
+		int z = 0;
+		for(int l = 0; l < this.image_count; l++)
+		{
+			//check Sprite
+			if(this.image_names[l].indexOf(".sprite") != -1)
+			{
+				sprites[z] = new Sprite(image_names[l], l);
+				this.images[l] = sprites[z].getImage();
+				if(this.images[l] == null)
+				{
+					System.out.println("Image Error; Image: " + l);
+				}
+				z++;
+			}
+			else
+			{
+				img_tmp = new ImageIcon(this.image_names[l]);
+				this.images[l] = img_tmp.getImage();
+			}
+			System.out.println(this.image_names[l]);
+		}		
 		System.out.println("Loaded Images: " + this.image_count);
 	}
 	public int getImageCount()
@@ -102,6 +155,14 @@ public class Draw extends JFrame {
 		this.player_x = player_x;
 		this.player_y = player_y;
 		this.player_image = player_image;
+	}
+	public void UpdateSprites()
+	{
+		for(int l = 0; l < this.sprite_count; l++)
+		{
+			this.sprites[l].Update();
+			this.images[this.sprites[l].getIndex()] = sprites[l].getImage();
+		}
 	}
 	public int CreateNewWindow(int window_type, int window_x, int window_y, String window_text, boolean show_window)
 	{
@@ -191,21 +252,33 @@ public class Draw extends JFrame {
 	{
 		int lpl = cx/7; //Letters per Line
 		String str;
-		int z;
-		int n;
 		int line = 0;
-		for(int l = 0; l < (window_text.length()/lpl)+1; l++)
+		int z = 0;
+		int n = 0;
+		int index = window_text.length();
+		System.out.println(window_text + " " + index);
+		while(index > 0)
 		{
-			n = window_text.length()-(52*l);
-			if(n >= 52)
-				z = 52;
-			else
+			if(lpl > index)
+				n = index;
+			else 
+				n = lpl;
+			str = window_text.substring(0, n);
+			if((z = str.indexOf("\n")) == -1)
+				z = str.length();
+			if(z == 0)
 				z = n;
-			str = window_text.substring(52*l, 52*l+z);
-			//System.out.println(str);
-			g.drawString(str, x, 100+this.img_size_y*(y+1)+line);
-			line += 25;
+			n = z;
+			index = index - n;
+			System.out.println(index);
+			str = str.substring(0, z);
+			window_text = window_text.substring(z, window_text.length());
+			System.out.println(str);
+			g.drawString(str, x, 100+this.img_size_y*(y+1)+(line*25));
+			line++;
 		}
+		
+			
 		
 	}
 	public void DrawSpeakWindow(Graphics g, String window_text)
@@ -225,7 +298,7 @@ public class Draw extends JFrame {
 	{
 		//Benötige die bild größe ...
 		//muss mir irgendwie mitgeteilt werden
-
+		this.buffer_g.clearRect(0, 0, 800, 600);
 	
 		for(int l = 0;  l < this.map_copy.length; l++)
 		{
@@ -235,27 +308,29 @@ public class Draw extends JFrame {
 				{
 					System.out.println("Fatal Error");
 				}
-				g.drawImage(this.images[this.map_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe); ///Hier bruache ich ein Handle von einem JFrame
+				buffer_g.drawImage(this.images[this.map_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe); ///Hier bruache ich ein Handle von einem JFrame
 				if(this.objects_copy[l][m] != 0)
 				{
-					g.drawImage(this.images[this.objects_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe);
+					buffer_g.drawImage(this.images[this.objects_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe);
 				}
 					
 			}
 		}
-		g.drawImage(this.images[this.player_image], 100+this.player_x*img_size_x, 100+this.player_y*img_size_y, jframe);
+		buffer_g.drawImage(this.images[this.player_image], 100+this.player_x*img_size_x, 100+this.player_y*img_size_y, jframe);
 		for(int l = 0;  l < this.objects_sec_copy.length; l++)
 		{
 			for(int m = 0; m < this.objects_sec_copy[0].length; m++)
 			{
 				if(this.objects_sec_copy[l][m] != 0)
 				{
-					g.drawImage(this.images[this.objects_sec_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe);
+					buffer_g.drawImage(this.images[this.objects_sec_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe);
 				}
 					
 			}
 		}
+		
 		g.setFont(this.font);
+		this.buffer_g.setFont(this.font);
 		for(int l = 0; l < this.window_count; l++)
 		{
 			if(this.show_window[l] == false)
@@ -263,10 +338,11 @@ public class Draw extends JFrame {
 			switch(this.window_type[l])
 			{
 			case 1:
-				DrawSpeakWindow(g, this.window_text[l]);
+				DrawSpeakWindow(this.buffer_g, this.window_text[l]);
 				break;
 			}
 		}
+		g.drawImage(this.buffer, 0, 0, jframe);
 	}
 	
 }

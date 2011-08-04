@@ -46,7 +46,7 @@ public class MapRead {
 		{
 			for(int m = 0; m < layer[l].length; m++)
 			{
-				layer[l][m] = Integer.parseInt(str[l][m]);
+				layer[l][m] = Integer.parseInt(str[m][l]);
 			}
 		}
 		return layer;
@@ -75,7 +75,7 @@ public class MapRead {
 		{
 			for(int m = 0; m < layer[l].length; m++)
 			{
-				layer[l][m] = Integer.parseInt(str[l][m]);
+				layer[l][m] = Integer.parseInt(str[m][l]);
 			}
 		}
 		return layer;
@@ -102,7 +102,7 @@ public class MapRead {
 		{
 			for(int m = 0; m < layer[l].length; m++)
 			{
-				layer[l][m] = Integer.parseInt(str[l][m]);
+				layer[l][m] = Integer.parseInt(str[m][l]);
 			}
 		}
 		return layer;
@@ -135,6 +135,7 @@ public class MapRead {
 	public static String[][] getNextMaps(){
 		String nMaps = genCFG.get("NEXT_MAP_POS");
 		String[] maps = nMaps.split("\\|");
+		System.out.println("Maps: " + maps.length);
 		String[][] retMaps = new String[maps.length][5];
 		
 		for(int i = 0; i < maps.length; i++){

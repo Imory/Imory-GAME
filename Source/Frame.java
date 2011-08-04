@@ -16,7 +16,7 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 	Map map;
 	Player player;
 	Sound sound;
-	Timer timer;
+	Timer timer, sprite_timer;
 	PersonScript pscript;
 	boolean init = false;
 	boolean draw_window;
@@ -30,8 +30,9 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 	    this.setVisible(true);
 	    this.addKeyListener(this);	
 	    timer = new Timer(100, this);
-		map = new Map("Example\\");
-		draw = new Draw(map.getImageNames(), map.getPicturePath());
+	    sprite_timer = new Timer(10, this);
+		map = new Map("Haus\\");
+		draw = new Draw(map.getImageNames(), map.getPicturePath(), this);
 		draw.setImages(map.getImageNames(), map.getPicturePath());
 		player = new Player(map.getPlayerPos_X(), map.getPlayerPos_Y(), 1, map.getPlayerImages()); //Hier is halt auch noch die veränderung dirn
 		sound = new Sound();
@@ -40,6 +41,7 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 		init = true;
 		
 		timer.start();
+		sprite_timer.start();
 		
 		
 	}
@@ -80,15 +82,24 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 		if(player.getAction() == true)
 		{
 			player.setAction(false);
+			if(pscript != null && pscript.getWaitAction() == true)
+			{
+				pscript.setWaitAction(false);
+				sound.playActionSound("ACTION_CLICK_2");
+				repaint();
+				return;
+			}
 			switch(map.checkMapAction(player.getX(), player.getY()))
 			{
 			case 1: //ACTION_NEXT_MAP
 			{
+				sound.playActionSound("STEPS_1");
 				map.destroy_map();
 				try {
 					
 					player = new Player(map.getNextPlayerPos_X(map.getLastNextMapIndex()), map.getNextPlayerPos_Y(map.getLastNextMapIndex()), 1, map.getPlayerImages());
 					sound.stopBackgroundMusic();
+					sound.resetBackgroundMusic();
 					map = new Map(map.getLastNextMap());
 					draw.setImages(map.getImageNames(), map.getPicturePath());
 					sound.playBackgroundMusic(map.getMusic());
@@ -101,10 +112,11 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 			}			
 			case 2: //ACTION_PERSON
 				//this.setTitle("Imory - Person");
+				sound.playActionSound("ACTION_CLICK_1");
 				try {
 					if(pscript != null)
 						pscript.destroy();
-					pscript = new PersonScript(map.getPersonScriptPath(), map.getLastPersonScript(), player, draw, this.getGraphics());
+					pscript = new PersonScript(map.getPersonScriptPath(), map.getLastPersonScript(), player, draw, map, this.getGraphics());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -114,9 +126,11 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 				pscript.doCommand();
 				break;
 			case 0: //ACTION_NO_ACTION
-				this.setTitle("Imory");
+				//this.setTitle("Imory");
 				break;
 			}
+			//Checking Script Action
+			
 		}
 		repaint();
 	}
@@ -141,6 +155,10 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 				pscript.doCommand();
 			}
 			repaint();
+		}
+		else if(arg0.getSource() == this.sprite_timer)
+		{
+			draw.UpdateSprites();
 		}
 	}
 }
