@@ -3,25 +3,29 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;
 
-public class Frame extends JFrame implements KeyListener, ActionListener  {
+public class Frame extends JFrame implements KeyListener, MouseListener, ActionListener  {
 
 	private static final long serialVersionUID = 1L;
 	
 	Draw draw;
 	Map map;
 	Player player;
+	Monster monster;
 	Sound sound;
-	Timer timer, sprite_timer;
+	Timer timer, sprite_timer, repaint_timer;
 	PersonScript pscript;
 	boolean init = false;
 	boolean draw_window;
 	int window_type;
 	boolean superdraw = false;
+	int slot;
 	public Frame(String title) throws IOException, MidiUnavailableException, InvalidMidiDataException
 	{
 		super(title);
@@ -30,18 +34,44 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 	    this.setVisible(true);
 	    this.addKeyListener(this);	
 	    timer = new Timer(100, this);
-	    sprite_timer = new Timer(10, this);
-		map = new Map("Haus\\");
+	    sprite_timer = new Timer(50, this);
+	    repaint_timer = new Timer(10, this);
+	    slot = 0; //muss nacher weggeamcht werden
+	    LoadLevel ll = new LoadLevel(slot);
+	    if(ll.LoadThisLevel() == false)
+	    {
+	    	ll.Close();
+	    	SaveLevel sl = new SaveLevel(slot);
+	    	if(sl.IsInit() == false)
+	    	{
+	    		System.out.print("Could not create new level Save at slot: " + slot);
+	    	}
+	    	map = new Map("Example/");
+	    	player = new Player(map.getPlayerPos_X(), map.getPlayerPos_Y(), 1, map.getPlayerImages());
+	    	sl.SaveThisLevel(map, player);
+	    	sl.Close();
+	    	ll = new LoadLevel(0);
+	    }
+	    if(ll.LoadThisLevel() == false)
+	    {
+	    	System.out.print("Fatal Error; Could not Load Level!");
+	    	return;
+	    }
+		map = new Map(ll.getMapDir());
 		draw = new Draw(map.getImageNames(), map.getPicturePath(), this);
-		draw.setImages(map.getImageNames(), map.getPicturePath());
-		player = new Player(map.getPlayerPos_X(), map.getPlayerPos_Y(), 1, map.getPlayerImages()); //Hier is halt auch noch die veränderung dirn
+		draw.setImages(map.getImageNames(), map.getPicturePath());		
 		sound = new Sound();
 		sound.playBackgroundMusic(map.getMusic());
 		System.out.println(map.getMusic());
+		player = new Player(ll.getPlayerPosX(), ll.getPlayerPosY(), 1, map.getPlayerImages());
+		player.Configurate(ll.getPlayerConfig());
+		draw.CreateNewWindow(2, 0, 0, ""+player.getHealthPoints(), true);
 		init = true;
 		
+		monster = null;
 		timer.start();
 		sprite_timer.start();
+		repaint_timer.start();
 		
 		
 	}
@@ -58,7 +88,8 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 			draw.UpdateMap(map.getMap());
 			draw.UpdateObjects(map.getObjects());
 			draw.UpdateObjects_Sec(map.getSecObjects());
-			draw.UpdatePlayer(player.getX(), player.getY(), player.getPlayerImage());
+			draw.UpdatePlayer(player.getRX(), player.getRY(), player.getPlayerImage());
+			draw.UpdateMonster(monster);
 			draw.DrawAll(g);
 		}
 		
@@ -66,11 +97,30 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 
 	@Override
 	public void keyPressed(KeyEvent arg0) {
+		if(arg0.getKeyCode() == KeyEvent.VK_S)
+		{
+			this.setTitle("Imory - Saving Level...");
+			System.out.println("Saving Level at slot: " + this.slot);
+			SaveLevel sl = new SaveLevel(this.slot);
+			sl.SaveThisLevel(map, player);
+			sl.Close();
+			this.setTitle("Imory");
+		}
+		if(arg0.getKeyCode() == KeyEvent.VK_T)
+		{
+			monster = new Monster(0, 0, map, draw);
+		}
+		if(player == null)
+			return;
 		player.move(arg0);
 		if(map.checkCollision(player.getNX(), player.getNY()) == false)
 		{
-			player.setX(player.getNX());
-			player.setY(player.getNY());
+//			player.setX(player.getNX());
+//			player.setY(player.getNY());
+			//System.out.println("PLayer moving; to: " + player.getNX() + " | " + player.getNY());
+			player.setMoving(true);
+			if(monster != null)
+				monster.Move(player.getX(), player.getY());
 		}
 		else
 		{
@@ -116,9 +166,8 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 				try {
 					if(pscript != null)
 						pscript.destroy();
-					pscript = new PersonScript(map.getPersonScriptPath(), map.getLastPersonScript(), player, draw, map, this.getGraphics());
+					pscript = new PersonScript(map.getPersonScriptPath(), map.getLastPersonScript(), player, draw, map, sound, this.getGraphics());
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				this.timer = new Timer(pscript.getDelay(), this);
@@ -160,5 +209,37 @@ public class Frame extends JFrame implements KeyListener, ActionListener  {
 		{
 			draw.UpdateSprites();
 		}
+		else if(arg0.getSource() == this.repaint_timer)
+		{
+			player.Moving();
+			repaint();
+		}
+	}
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		if(arg0.getButton() == MouseEvent.BUTTON1)
+		{
+			
+		}
+	}
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -101,6 +101,10 @@ public class Map {
 			this.person_scripts[l] = dir + this.person_path + this.person_script_path + tmp1[2];
 		}
 	}
+	public String getMapDir()
+	{
+		return this.MapDir;
+	}
 	public int getSizeX()
 	{
 		return this.size_x;
@@ -197,6 +201,18 @@ public class Map {
 	public void setObjectsSecPosTo(int x, int y, int value)
 	{
 		this.objects_sec[x][y] = value;
+	}
+	public int getMapPosTo(int x, int y)
+	{
+		return this.map[x][y];
+	}
+	public int getObjectsPosTo(int x, int y)
+	{
+		return this.objects[x][y];
+	}
+	public int getObjectsSecPosTo(int x, int y)
+	{
+		return this.objects_sec[x][y];
 	}
 	public boolean checkCollision(int x, int y) //Nur Objekte können Kollisionen erzeugen
 	{

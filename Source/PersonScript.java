@@ -13,6 +13,7 @@ public class PersonScript {
 	private Player player;
 	private Draw draw;
 	private Map map;
+	private Sound sound;
 	private Graphics g;
 	private boolean init;
 	private boolean wait_action;
@@ -20,7 +21,7 @@ public class PersonScript {
 	private int speaking_window;
 	private boolean init_sp_window;
 	
-	public PersonScript(String dir, String file, Player player, Draw draw, Map map, Graphics g) throws IOException
+	public PersonScript(String dir, String file, Player player, Draw draw, Map map, Sound sound, Graphics g) throws IOException
 	{
 		
 		ConfigFileReader cfg = new ConfigFileReader("script_language.cfg");
@@ -33,6 +34,7 @@ public class PersonScript {
 		Splitter split = new Splitter(dir + script, "=");
 		commands = split.splitIt();
 		step = 0;
+		this.sound = sound;
 		this.draw = draw;
 		this.player = player;
 		this.map = map;
@@ -86,6 +88,11 @@ public class PersonScript {
 			String tmp[] = commands[step][1].split("\\|");
 			this.map.setObjectsPosTo(Integer.parseInt(tmp[0]), Integer.parseInt(tmp[1]), Integer.parseInt(tmp[2]));
 			break;	
+		}
+		case 3:
+		{
+			String tmp = commands[step][1];
+			this.sound.playActionSound(tmp);
 		}
 		}
 		step++;

@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -29,6 +30,10 @@ public class Draw {
 	private JFrame jframe;       		//this needs the draw function
 	private int img_size_x = 20; 		//x size of the images
 	private int img_size_y = 20; 		//y size of the images
+	
+	private int monster_x, monster_y;
+	private int monster_image;
+	private boolean bmonster;
 	
 	//Windows
 	private Font font;
@@ -78,14 +83,20 @@ public class Draw {
 		this.buffer = jframe.createImage(800, 600);
 		this.buffer_g = this.buffer.getGraphics();
 		this.init = true;
-		this.window_images = new Image[3];
 		this.path = dir;
-		img_tmp = new ImageIcon(this.path + "window_speak_left.png");
-		this.window_images[0] = img_tmp.getImage();
-		img_tmp = new ImageIcon(this.path + "window_speak_right.png");
-		this.window_images[1] = img_tmp.getImage();
-		img_tmp = new ImageIcon(this.path + "window_speak_middle.png");
-		this.window_images[2] = img_tmp.getImage();
+		ConfigFileReader cfg = new ConfigFileReader("Pictures/general.cfg");
+		HashMap<String, String> hm = cfg.get();
+		String wndd = hm.get("WINDOW_DIR");
+		String wndcfg = hm.get("WINDOW_CONFIG");
+		int wndc = Integer.parseInt(hm.get("WINDOW_IMAGE_COUNT"));
+		cfg = new ConfigFileReader("Pictures/"+wndd+wndcfg);
+		hm = cfg.get();
+		this.window_images = new Image[wndc];
+		for(int l = 0; l < wndc; l++)
+		{
+			img_tmp = new ImageIcon("Pictures/"+wndd+hm.get(""+l));
+			this.window_images[l] = img_tmp.getImage();
+		}
 		this.window_count = 0;
 		this.window_type = new int[0];
 		this.window_x = new int[0];
@@ -93,6 +104,8 @@ public class Draw {
 		this.show_window = new boolean[0];
 		this.window_text = new String[0];
 		this.font = new Font("Lucida Calligraphy", Font.PLAIN, 12);
+		
+		this.bmonster = false;
 		
 	}
 	public void setImages(String image_names[], String dir) throws IOException
@@ -155,6 +168,16 @@ public class Draw {
 		this.player_x = player_x;
 		this.player_y = player_y;
 		this.player_image = player_image;
+	}
+	public void UpdateMonster(Monster monster)
+	{
+		if(monster != null)
+			this.bmonster = true;
+		else
+			return;
+		this.monster_x = monster.getX();
+		this.monster_y = monster.getY();
+		this.monster_image = monster.getImage();
 	}
 	public void UpdateSprites()
 	{
@@ -294,6 +317,15 @@ public class Draw {
 		}
 		this.WriteWindowText(100+this.img_size_x, a, (this.map_copy.length-2)*this.img_size_x, 80, window_text, g);
 	}
+	public void DrawHealthPointsWindow(Graphics g, int healthpoints)
+	{
+		g.drawImage(this.window_images[3], 100, 40, this.jframe);
+		for(int l = 0; l < healthpoints; l++)
+		{
+			g.drawImage(this.window_images[4], 144+(l*3), 56, this.jframe);
+		}
+	}
+	
 	public void DrawAll(Graphics g)
 	{
 		//Benötige die bild größe ...
@@ -309,14 +341,23 @@ public class Draw {
 					System.out.println("Fatal Error");
 				}
 				buffer_g.drawImage(this.images[this.map_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe); ///Hier bruache ich ein Handle von einem JFrame
+			}
+		}
+		for(int l = 0; l < this.objects_copy.length; l++)
+		{
+			for(int m = 0; m < this.objects_copy[l].length; m++)
+			{
 				if(this.objects_copy[l][m] != 0)
 				{
 					buffer_g.drawImage(this.images[this.objects_copy[l][m]], 100+img_size_x*l, 100+img_size_y*m, jframe);
 				}
-					
 			}
 		}
-		buffer_g.drawImage(this.images[this.player_image], 100+this.player_x*img_size_x, 100+this.player_y*img_size_y, jframe);
+		buffer_g.drawImage(this.images[this.player_image], 100+this.player_x, 100+this.player_y, jframe);
+		
+		if(this.bmonster == true)
+			buffer_g.drawImage(this.images[this.monster_image], 100+this.monster_x*20, 100+this.monster_y*20, jframe);
+		
 		for(int l = 0;  l < this.objects_sec_copy.length; l++)
 		{
 			for(int m = 0; m < this.objects_sec_copy[0].length; m++)
@@ -339,6 +380,9 @@ public class Draw {
 			{
 			case 1:
 				DrawSpeakWindow(this.buffer_g, this.window_text[l]);
+				break;
+			case 2:
+				DrawHealthPointsWindow(this.buffer_g, Integer.parseInt(this.window_text[l]));
 				break;
 			}
 		}

@@ -1,10 +1,13 @@
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.HashMap;
 
 
 public class Player {
 
 	private int x, y;
 	private int nx, ny;
+	private int rx, ry;
 	private int player_image;
 	private int player_direction; 
 	private int[] images;
@@ -12,6 +15,9 @@ public class Player {
 	private boolean moving;
 	private boolean script;
 	private boolean movable;
+	
+	private long last_ticks;
+	private int img_size_x, img_size_y;
 	
 	private int health_points;
 	private int experience_points;
@@ -22,8 +28,18 @@ public class Player {
 	private Inventory inv;
 	
 	
+	
 	public Player(int x, int y, int player_direction, int[] images)
 	{
+		this.img_size_x = 20;
+		this.img_size_y = 20;
+		
+		this.speed = 20;
+		this.health_points = 100;
+		this.experience_points = 0;
+		
+		this.rx = x*this.img_size_x;
+		this.ry = y*this.img_size_y;
 		this.x = x;
 		this.y = y;
 		this.nx = x;
@@ -35,6 +51,16 @@ public class Player {
 		this.script = false;
 		this.movable = true;
 		player_image = this.getImageByDirection();
+	}
+	public void Configurate(String config) throws IOException
+	{
+		ConfigFileReader cfg = new ConfigFileReader(config);
+		HashMap<String, String> hm = cfg.get();
+		this.x = Integer.parseInt(hm.get("PLAYER_X"));
+		this.y = Integer.parseInt(hm.get("PLAYER_Y"));
+		this.health_points = Integer.parseInt(hm.get("PLAYER_HP"));
+		this.experience_points = Integer.parseInt(hm.get("PLAYER_EP"));
+		
 	}
 	public int getX()
 	{
@@ -51,6 +77,22 @@ public class Player {
 	public void setY(int y)
 	{
 		this.y = y;
+	}
+	public int getRX()
+	{
+		return this.rx;
+	}
+	public int getRY()
+	{
+		return this.ry;
+	}
+	public void setRX(int rx)
+	{
+		this.rx = rx;
+	}
+	public void setRY(int ry)
+	{
+		this.ry = ry;
 	}
 	public int getNX()
 	{
@@ -85,6 +127,18 @@ public class Player {
 	public void setAction(boolean action)
 	{
 		this.action = action;
+	}
+	public int getHealthPoints() {
+		return this.health_points;
+	}
+	public void setHealthPoints(int health_points) {
+		this.health_points = health_points;
+	}
+	public int getExperiencePoints() {
+		return experience_points;
+	}
+	public void setExperiencePoints(int experience_points) {
+		this.experience_points = experience_points;
 	}
 	public int getPlayerImage()
 	{
@@ -168,6 +222,63 @@ public class Player {
 		}
 		this.player_image = getImageByDirection();
 		//System.out.println("Player Pos: " + this.x + " " + this.y);
+	}
+	public boolean checkRNByDirection()
+	{
+		switch(this.player_direction)
+		{
+		case 1:
+			if(this.ry <= this.ny*this.img_size_y)
+				return true;
+			break;
+		case 2:
+			if(this.rx <= this.nx*this.img_size_x)
+				return true;
+			break;
+		case 3:
+			if(this.rx >= this.nx*this.img_size_x)
+				return true;
+			break;
+		case 4:
+			if(this.ry >= this.ny*this.img_size_y)
+				return true;
+			break;
+		}
+		return false;
+	}
+	public void Moving()
+	{
+		if(this.moving == false)
+			return;
+		long tmp;
+		if((tmp =System.currentTimeMillis()) >= last_ticks+speed)
+		{
+			last_ticks = tmp;
+			switch(this.player_direction)
+			{
+			case 1:
+				this.ry -= 2;
+				break;
+			case 2:
+				this.rx -= 2;
+				break;
+			case 3:
+				this.rx += 2;
+				break;
+			case 4:
+				this.ry += 2;
+				break;
+			}
+			if(this.checkRNByDirection())
+			{
+				this.setMoving(false);
+				//System.out.println("Setting state..." + this.x + " " + this.y + " "+ this.nx + " " + this.ny);
+				this.x = this.nx;
+				this.y = this.ny;
+				this.rx = this.x*this.img_size_x;
+				this.ry = this.y*this.img_size_y;
+			}
+		}
 	}
 	
 }
