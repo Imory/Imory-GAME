@@ -1,0 +1,8 @@
+SAY=Evil Magician: Go away!
+SAY=Evil Magician: I said: "Go away!"
+SAY=Evil Magician: Go away! I am teleporting you! You`re a freakin` fuckin` bastard! Hahahahahahaaa....
+SET_PLAYER_POS=3|5
+SET_PLAYER_POS=6|7
+SET_PLAYER_POS=18|18
+SAY=Evil Magician: Oh sorry one moment...
+SET_PLAYER_POS=0|0

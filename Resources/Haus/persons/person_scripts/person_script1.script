@@ -1,0 +1,4 @@
+SAY=You pressed a button..
+PLAY_SOUND=OBJECT_MOVE_1
+SET_OBJECT_POS_TO=4|5|0
+SAY=Something changed
